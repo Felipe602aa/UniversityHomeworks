@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Felipe602aa">
+    <meta name="copyright" content="© 2026 Felipe Calderón Guerra Daniel. Todos los derechos reservados.">
+    <title>Calculadora - Método de Bisección</title>
+    
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Math.js para evaluar la función matemática -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    
+    <!-- Chart.js para la gráfica -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- KaTeX para renderizar fórmulas matemáticas elegantes -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        .table-container { max-height: 400px; overflow-y: auto; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Estilos para que KaTeX se vea bien en las tarjetas */
+        .math-display { 
+            display: block; 
+            margin: 10px 0; 
+            padding: 12px; 
+            background: #f8fafc; 
+            border-radius: 12px;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+        }
+
+        .katex-display { margin: 0.5em 0 !important; }
+
+        /* Marca de agua */
+        .watermark {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            letter-spacing: 0.5px;
+        }
+
+        .watermark-footer {
+            background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
+            color: #94a3b8;
+            text-align: center;
+            padding: 16px;
+            font-size: 12px;
+            border-top: 2px solid #3b82f6;
+            margin-top: 40px;
+        }
+
+        .watermark-footer strong {
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen p-4 md:p-8">
+
+    <!-- Marca de agua superior -->
+    <div class="watermark">
+        © Felipe602aa - Todos los derechos reservados
+    </div>
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        
+        <!-- Encabezado -->
+        <header class="text-center space-y-2">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-700">Calculadora de Bisección Profesional</h1>
+            <p class="text-slate-500 font-medium">👨‍💼 Ing. Felipe Calderón Guerra Daniel</p>
+            <p class="text-slate-500 font-medium">📚 Análisis Numérico Detallado - UNIMETA</p>
+        </header>
+
+        <!-- Contenedor Principal -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Panel Izquierdo: Inputs -->
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-semibold mb-4 text-slate-700 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        Datos de Entrada
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Función f(x)</label>
+                            <input type="text" id="func-input" value="x^3 - x - 2" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-lg font-mono">
+                            <p class="text-xs text-slate-400 mt-1">Ej: x^2 - 4, sin(x), exp(x)-3</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Límite [a]</label>
+                                <input type="number" id="a-input" value="1" step="any" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Límite [b]</label>
+                                <input type="number" id="b-input" value="2" step="any" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Tolerancia</label>
+                                <input type="number" id="tol-input" value="0.001" step="any" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Max Iter</label>
+                                <input type="number" id="iter-input" value="20" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                        </div>
+
+                        <button onclick="calcularBiseccion()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-blue-200 active:scale-95 flex justify-center items-center gap-2">
+                            Calcular Raíz Paso a Paso
+                        </button>
+
+                        <div id="error-box" class="hidden bg-red-50 border-l-4 border-red-500 text-red-700 p-3 rounded text-sm"></div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Fórmulas -->
+                <div class="bg-indigo-900 text-indigo-100 p-6 rounded-2xl shadow-sm">
+                    <h3 class="font-bold mb-3 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Fórmulas Base
+                    </h3>
+                    <div class="space-y-4 text-sm opacity-90">
+                        <div>
+                            <p class="mb-1">Punto Medio:</p>
+                            <div id="formula-xm" class="bg-indigo-800/50 p-2 rounded text-center min-h-[30px]"></div>
+                        </div>
+                        <div>
+                            <p class="mb-1">Error Relativo:</p>
+                            <div id="formula-error" class="bg-indigo-800/50 p-2 rounded text-center min-h-[30px]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Derecho: Gráfica -->
+            <div class="lg:col-span-2 flex flex-col space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex-grow">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-slate-700 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                            Comportamiento Gráfico
+                        </h2>
+                        <div id="root-result" class="hidden animate-bounce bg-emerald-500 text-white py-1 px-4 rounded-full text-sm font-bold shadow-md">
+                            Raíz encontrada: <span id="root-value"></span>
+                        </div>
+                    </div>
+                    <div class="h-[350px]">
+                        <canvas id="functionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Iteraciones -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <h2 class="text-xl font-semibold mb-4 text-slate-700 flex items-center gap-2">
+                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                Resumen de Iteraciones
+            </h2>
+            <div class="table-container rounded-xl border border-slate-100">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-50 sticky top-0 shadow-sm">
+                        <tr>
+                            <th class="px-6 py-3">Iter</th>
+                            <th class="px-6 py-3">a</th>
+                            <th class="px-6 py-3">b</th>
+                            <th class="px-6 py-3 text-blue-600 font-bold">x<sub>r</sub></th>
+                            <th class="px-6 py-3">f(x<sub>r</sub>)</th>
+                            <th class="px-6 py-3 text-purple-600">Error (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="iterations-body" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">Los resultados aparecerán aquí.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sección Paso a Paso -->
+        <div id="step-by-step-section" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <span class="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                </span>
+                Análisis Detallado de Operaciones
+            </h2>
+            <div id="step-by-step-content" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Se llenará con JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Pie de página con derechos de autor -->
+    <footer class="watermark-footer">
+        <p>
+            <strong>© 2026 Felipe Calderón Guerra Daniel</strong> | 
+            Calculadora de Bisección Profesional v1.0<br>
+            <small>Todos los derechos reservados. Prohibida la reproducción total o parcial sin autorización.</small>
+        </p>
+    </footer>
+
+    <script>
+        // Protección contra copia no autorizada
+        document.addEventListener('copy', function(e) {
+            const watermark = '\n\n© 2026 Felipe Calderón Guerra Daniel - UniversityHomeworks\nRepositorio: https://github.com/Felipe602aa/UniversityHomeworks\nProhibida la reproducción sin autorización.';
+            e.clipboardData.setData('text/plain', e.clipboardData.getData('text/plain') + watermark);
+            e.preventDefault();
+        });
+
+        // Prevenir inspección de código (opcional, se puede desactivar)
+        document.addEventListener('contextmenu', function(e) {
+            // Permitir pero mostrar aviso
+            console.warn('⚠️ Este código está protegido por derechos de autor © Felipe602aa');
+        });
+
+        let functionChart = null;
+
+        // Inicialización de KaTeX cuando el DOM esté listo
+        document.addEventListener("DOMContentLoaded", function() {
+            // Renderizar fórmulas base iniciales
+            const formulaXm = document.getElementById('formula-xm');
+            const formulaError = document.getElementById('formula-error');
+            
+            if (formulaXm) katex.render("x_r = \\frac{a + b}{2}", formulaXm);
+            if (formulaError) katex.render("E_r = \\left| \\frac{x_r^{nuevo} - x_r^{viejo}}{x_r^{nuevo}} \\right| \\times 100\\%", formulaError);
+
+            // Configurar auto-render para el resto del documento
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError : false
+                });
+            }
+        });
+
+        function calcularBiseccion() {
+            const errorBox = document.getElementById('error-box');
+            errorBox.classList.add('hidden');
+            
+            const funcStr = document.getElementById('func-input').value;
+            let aInput = parseFloat(document.getElementById('a-input').value);
+            let bInput = parseFloat(document.getElementById('b-input').value);
+            const tol = parseFloat(document.getElementById('tol-input').value);
+            const maxIter = parseInt(document.getElementById('iter-input').value);
+
+            let a = aInput;
+            let b = bInput;
+
+            let fn;
+            try {
+                const node = math.parse(funcStr);
+                fn = node.compile();
+            } catch (e) {
+                errorBox.innerHTML = "Error en la función matemática.";
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            const f = (x) => fn.evaluate({ x: x });
+
+            try {
+                if (f(a) * f(b) > 0) {
+                    errorBox.innerHTML = `<strong>Error de Intervalo:</strong> f(a) y f(b) tienen el mismo signo (${f(a).toFixed(8)} y ${f(b).toFixed(8)}). Bolzano requiere signos opuestos.`;
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+            } catch(e) {
+                errorBox.innerHTML = "Error al evaluar los límites del intervalo.";
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            if (a > b) [a, b] = [b, a];
+
+            let iteraciones = [];
+            let xr_viejo = 0;
+            let iter = 0;
+            let xr = 0;
+
+            while (iter < maxIter) {
+                let a_actual = a;
+                let b_actual = b;
+                xr = (a + b) / 2;
+                let fxr = f(xr);
+                let fa = f(a);
+                let errorVal = iter > 0 ? Math.abs((xr - xr_viejo) / xr) * 100 : null;
+                
+                let producto = fa * fxr;
+                let cambioSigno = producto < 0;
+                
+                let operacion_math = `f(a) \\cdot f(x_r) = (${fa.toFixed(8)}) \\cdot (${fxr.toFixed(8)}) = ${producto.toFixed(8)}`;
+                
+                let conclusion = "";
+                if (fxr === 0) {
+                    conclusion = "¡Raíz exacta encontrada!";
+                } else if (cambioSigno) {
+                    conclusion = `Como el producto es $< 0$, hay cambio de signo en $[a, x_r]$. Entonces: $b = x_r = ${xr.toFixed(8)}$`;
+                } else {
+                    conclusion = `Como el producto es $> 0$, no hay cambio de signo en $[a, x_r]$. Entonces: $a = x_r = ${xr.toFixed(8)}$`;
+                }
+
+                iteraciones.push({
+                    i: iter + 1, a: a_actual, b: b_actual, xr, fxr, fa, errorVal,
+                    operacion_math, cambioSigno, conclusion,
+                    xr_formula: `x_r = \\frac{${a_actual.toFixed(8)} + ${b_actual.toFixed(8)}}{2} = ${xr.toFixed(8)}`,
+                    error_formula: iter > 0 ? 
+                        `E_r = \\left| \\frac{${xr.toFixed(8)} - ${xr_viejo.toFixed(8)}}{${xr.toFixed(8)}} \\right| \\times 100\\% = ${errorVal.toFixed(8)}\\%` : 
+                        `E_r = \\text{No aplica (Iteración 1)}`
+                });
+
+                if ((errorVal !== null && errorVal < tol) || fxr === 0) break;
+
+                if (cambioSigno) b = xr; else a = xr;
+                xr_viejo = xr;
+                iter++;
+            }
+
+            renderUI(iteraciones, f, xr, aInput, bInput);
+        }
+
+        function renderUI(datos, f, raiz, aOri, bOri) {
+            // Tabla
+            const tbody = document.getElementById('iterations-body');
+            tbody.innerHTML = datos.map(r => `
+                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                    <td class="px-6 py-3 font-semibold text-slate-500">${r.i}</td>
+                    <td class="px-6 py-3">${r.a.toFixed(8)}</td>
+                    <td class="px-6 py-3">${r.b.toFixed(8)}</td>
+                    <td class="px-6 py-3 text-blue-600 font-bold">${r.xr.toFixed(8)}</td>
+                    <td class="px-6 py-3 text-slate-600">${r.fxr.toFixed(8)}</td>
+                    <td class="px-6 py-3 text-purple-600 font-mono">${r.errorVal ? r.errorVal.toFixed(8) + '%' : '-'}</td>
+                </tr>
+            `).join('');
+
+            // Paso a Paso
+            const stepSection = document.getElementById('step-by-step-section');
+            const stepContent = document.getElementById('step-by-step-content');
+            stepSection.classList.remove('hidden');
+            stepContent.innerHTML = '';
+
+            datos.forEach(r => {
+                const card = document.createElement('div');
+                card.className = "bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4 hover:shadow-md transition-shadow";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+                        <span class="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full uppercase tracking-wider">Iteración ${r.i}</span>
+                        <span class="text-xs text-slate-400 font-mono bg-slate-50 px-2 py-1 rounded">Int: [${r.a.toFixed(8)}, ${r.b.toFixed(8)}]</span>
+                    </div>
+                    
+                    <div class="space-y-4 text-sm">
+                        <div>
+                            <p class="text-slate-500 font-bold text-xs uppercase mb-1">1. Punto Medio</p>
+                            <div class="math-display text-blue-800" id="xr-math-${r.i}"></div>
+                        </div>
+                        
+                        <div>
+                            <p class="text-slate-500 font-bold text-xs uppercase mb-1">2. Error Relativo</p>
+                            <div class="math-display text-purple-800" id="er-math-${r.i}"></div>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-slate-500 font-bold text-xs uppercase mb-2">3. Análisis de Signo</p>
+                            <div class="space-y-3">
+                                <div id="logic-math-${r.i}" class="text-center bg-white py-2 rounded-lg border border-slate-100"></div>
+                                <div class="p-3 bg-blue-50 rounded-lg text-blue-900 text-sm border border-blue-100" id="conc-math-${r.i}"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                stepContent.appendChild(card);
+                
+                // Renderizado individual de KaTeX para cada tarjeta
+                try {
+                    katex.render(r.xr_formula, document.getElementById(`xr-math-${r.i}`), { displayMode: true });
+                    katex.render(r.error_formula, document.getElementById(`er-math-${r.i}`), { displayMode: true });
+                    katex.render(r.operacion_math, document.getElementById(`logic-math-${r.i}`), { displayMode: true });
+                    katex.render(r.conclusion, document.getElementById(`conc-math-${r.i}`), { displayMode: false });
+                } catch(e) {
+                    console.error("Error renderizando KaTeX en iteración " + r.i, e);
+                }
+            });
+
+            // Gráfica
+            renderChart(f, aOri, bOri, raiz);
+            
+            // Badge Resultado
+            const rootBadge = document.getElementById('root-result');
+            rootBadge.classList.remove('hidden');
+            document.getElementById('root-value').innerText = raiz.toFixed(8);
+        }
+
+        function renderChart(f, a, b, raiz) {
+            const ctx = document.getElementById('functionChart').getContext('2d');
+            if (functionChart) functionChart.destroy();
+
+            let margin = Math.abs(b - a) * 0.4 || 1;
+            let start = a - margin;
+            let end = b + margin;
+            let step = (end - start) / 100;
+
+            let xPoints = [], yPoints = [], zeroLine = [];
+            for (let x = start; x <= end; x += step) {
+                xPoints.push(x.toFixed(3));
+                try {
+                    let val = f(x);
+                    yPoints.push(isFinite(val) ? val : null);
+                } catch(e) { yPoints.push(null); }
+                zeroLine.push(0);
+            }
+
+            functionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xPoints,
+                    datasets: [
+                        { label: 'f(x)', data: yPoints, borderColor: '#3b82f6', tension: 0.3, pointRadius: 0, borderWidth: 3 },
+                        { label: 'Eje X', data: zeroLine, borderColor: '#94a3b8', borderWidth: 1, borderDash: [5,5], pointRadius: 0 },
+                        { label: 'Raíz', data: [{x: xPoints.indexOf(raiz.toFixed(3)), y: 0}], pointBackgroundColor: '#10b981', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 8, type: 'scatter' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } }, 
+                        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0 } } 
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
